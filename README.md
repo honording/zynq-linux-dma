@@ -7,7 +7,7 @@ Vivado 2014.4 with corresponding Petalinux SDK.
 ZC706 Evaluation Board. 
 ## Hardware Architecture 
 ![HW architecture](archive/architecture.png)
-This project implements a self-looped DMA connecting with both PL and PS DDRs. The PL DDR is invisible to Linux running on PS. Data can be moved between PS and PL DDRs from programs in user space. The hardware can be built from the `hw/system.tcl`.
+This project implements a self-looped DMA connecting with both PL and PS DDRs. The PL DDR is invisible to Linux running on PS. Data can be moved between (1) PS and PL DDRs, (2) PS and PS DDRs, and (3) PL and PL DDRs from programs in user space. The hardware can be built from the `hw/system.tcl`.
 ## Software Flow
 ### Create Modules
 ``` bash
