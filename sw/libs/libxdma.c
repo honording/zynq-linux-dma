@@ -5,7 +5,7 @@
 #define u32 uint32_t
 // dma_cookie_t is defined in the kernel header <linux/dmaengine.h>
 #define dma_cookie_t int32_t
-#include "xdma.h"
+#include "../../modules/xdma/xdma.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +24,22 @@ static uint8_t *map;        /* mmapped array of char's */
 
 int num_of_devices;
 struct xdma_dev xdma_devices[MAX_DEVICES];
+
+int ret_buff_location(enum buff_location buff_loc) {
+    int ret = 0;
+    switch (buff_loc) {
+        case PS:
+            ret = 0;
+            break;
+        case PL:
+            ret = 1;
+            break;
+        default:
+            ret = 0;
+            break;
+    }
+    return ret;
+}
 
 uint32_t xdma_calc_offset(void *ptr)
 {
@@ -156,10 +172,13 @@ int xdma_num_of_devices(void)
  * or length to zero.
  */
 int xdma_perform_transaction(int device_id, enum xdma_wait wait,
-                 uint32_t * src_ptr, uint32_t src_length,
-                 uint32_t * dst_ptr, uint32_t dst_length)
+                uint32_t * src_ptr, enum buff_location src_loc,
+                uint32_t * dst_ptr, enum buff_location dst_loc,
+                uint32_t length);
 {
     int ret = 0;
+    uint32_t src_length = length;
+    uint32_t dst_length = length;
     struct xdma_buf_info dst_buf;
     struct xdma_buf_info src_buf;
     struct xdma_transfer dst_trans;
@@ -172,13 +191,14 @@ int xdma_perform_transaction(int device_id, enum xdma_wait wait,
         return -1;
     }
 
-    if (src_used) {
+    if (src_used) { //tx
         src_buf.chan = xdma_devices[device_id].tx_chan;
         src_buf.completion = xdma_devices[device_id].tx_cmp;
         src_buf.cookie = 0;
         src_buf.buf_offset = (u32) xdma_calc_offset(src_ptr);
         src_buf.buf_size = (u32) (src_length * sizeof(src_ptr[0]));
         src_buf.dir = XDMA_MEM_TO_DEV;
+        src_buf.location = ret_buff_location(src_loc);
         ret = (int)ioctl(fd, XDMA_PREP_BUF, &src_buf);
         if (ret < 0) {
             perror("Error ioctl set src (tx) buf");
@@ -186,13 +206,14 @@ int xdma_perform_transaction(int device_id, enum xdma_wait wait,
         }
     }
 
-    if (dst_used) {
+    if (dst_used) { //rx
         dst_buf.chan = xdma_devices[device_id].rx_chan;
         dst_buf.completion = xdma_devices[device_id].rx_cmp;
         dst_buf.cookie = 0;
         dst_buf.buf_offset = (u32) xdma_calc_offset(dst_ptr);
         dst_buf.buf_size = (u32) (dst_length * sizeof(dst_ptr[0]));
         dst_buf.dir = XDMA_DEV_TO_MEM;
+        dst_buf.location = ret_buff_location(dst_loc);
         ret = (int)ioctl(fd, XDMA_PREP_BUF, &dst_buf);
         if (ret < 0) {
             perror("Error ioctl set dst (rx) buf");
@@ -228,10 +249,12 @@ int xdma_perform_transaction(int device_id, enum xdma_wait wait,
 }
 
 int xdma_stop_transaction(int device_id,
-              uint32_t * src_ptr, uint32_t src_length,
-              uint32_t * dst_ptr, uint32_t dst_length)
+                uint32_t * src_ptr, uint32_t * dst_ptr, 
+                uint32_t length)
 {
     int ret = 0;
+    uint32_t src_length = length;
+    uint32_t dst_length = length;
     struct xdma_transfer dst_trans;
     struct xdma_transfer src_trans;
     const bool src_used = ((src_ptr != NULL) && (src_length != 0));

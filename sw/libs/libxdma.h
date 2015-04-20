@@ -18,6 +18,11 @@ extern "C" {
         XDMA_WAIT_BOTH = (1 << 1) | (1 << 0),
     };
 
+    enum buff_location {
+      PS,
+      PL,
+    }
+
     void *xdma_alloc(int length, int byte_num);
 
     void xdma_alloc_reset(void);
@@ -29,12 +34,13 @@ extern "C" {
     int xdma_num_of_devices(void);
 
     int xdma_perform_transaction(int device_id, enum xdma_wait wait,
-                     uint32_t * src_ptr, uint32_t src_length,
-                     uint32_t * dst_ptr, uint32_t dst_length);
+                     uint32_t * src_ptr, enum buff_location src_loc,
+                     uint32_t * dst_ptr, enum buff_location dst_loc,
+                     uint32_t length);
 
     int xdma_stop_transaction(int device_id,
-                  uint32_t * src_ptr, uint32_t src_length,
-                  uint32_t * dst_ptr, uint32_t dst_length);
+                  uint32_t * src_ptr, uint32_t * dst_ptr,
+                  uint32_t length);
 
 #ifdef __cplusplus
 }
