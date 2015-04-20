@@ -248,7 +248,7 @@ static void xdma_stop_transfer(struct dma_chan *chan)
 					 (unsigned long)NULL);
 	}
 }
-
+/*
 static void xdma_test_transfer(void)
 {
 	const int LENGTH = 1048576;	// max image is 1024x1024 for now!
@@ -345,6 +345,8 @@ static void xdma_test_transfer(void)
 	}
 	printk("\n");
 }
+
+*/
 
 static long xdma_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
